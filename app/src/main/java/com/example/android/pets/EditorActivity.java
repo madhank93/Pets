@@ -28,6 +28,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract.PetEntry;
 import com.example.android.pets.data.PetDbHelper;
@@ -156,7 +157,17 @@ public class EditorActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
 
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        db.insert(PetEntry.TABLE_NAME, null, values);
+        long insertStatus = db.insert(PetEntry.TABLE_NAME, null, values);
+
+        if (insertStatus == -1) {
+            Toast.makeText(this, "Error with saving pet",
+                    Toast.LENGTH_LONG).show();
+        }
+
+        else {
+            Toast.makeText(this, "Pet saved with ID: " + insertStatus,
+                    Toast.LENGTH_LONG).show();
+        }
 
     }
 }
