@@ -91,7 +91,20 @@ public class CatalogActivity extends AppCompatActivity {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
             TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            displayView.setText("Number of rows in pets database table: " + cursor.getCount()+ "\n\n");
+
+            displayView.append(PetEntry._ID + "\t" + PetEntry.COLUMN_PET_NAME +"\t"+ PetEntry.COLUMN_PET_BREED+ "\t"+ PetEntry.COLUMN_PET_GENDER+ "\t"+ PetEntry.COLUMN_PET_WEIGHT + "\n");
+
+            while(cursor.moveToNext()) {
+                int currentPetID = cursor.getInt(cursor.getColumnIndex(PetEntry._ID));
+                String currentPetName = cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME));
+                String currentPetBreed = cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED));
+                int currentPetGender = cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER));
+                int currentPetWeight = cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT));
+
+                displayView.append("\n" + currentPetID + "\t"+ currentPetName+ "\t" + currentPetBreed + "\t" + currentPetGender + "\t" + currentPetWeight );
+            }
+
         } finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
