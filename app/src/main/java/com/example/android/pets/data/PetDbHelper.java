@@ -5,6 +5,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import com.example.android.pets.data.PetContract.PetEntry;
 
+
+/*
+*  This class provides a connection to a database and also helps creating a database
+*  if one doesn't already exists
+*/
+
 public class PetDbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "shelter.db";
