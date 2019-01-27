@@ -109,6 +109,18 @@ public class PetProvider extends ContentProvider {
         return null;
     }
 
+    /*
+     * Query method flow:
+     *                                                                        -> Perform X action on
+     *                                                                        |  pets table
+     * Editor Activity -> Content resolver -> Pet provider (URI matcher) -----
+     *                                                                        |
+     *                                                                        -> Perform Y action on
+     *                                                                           a single pet in the
+     *                                                                           pets table
+     * @param uri where to insert?.
+     * @param values what to insert?.
+     */
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
