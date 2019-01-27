@@ -33,6 +33,12 @@ import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Displays list of pets that were entered and stored in the app.
+ *
+ * Flow:
+ * Catalog Activity -> Content resolver -> Pet provider (URI matcher) -> Query pets table
+ *                                                                          ↓
+ *                                                                          ↓
+ *                                                                      Cursor
  */
 public class CatalogActivity extends AppCompatActivity {
 
@@ -70,12 +76,6 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        mDbHelper = new PetDbHelper(this);
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         String [] projection = {PetEntry._ID,
                                 PetEntry.COLUMN_PET_NAME,
@@ -84,9 +84,11 @@ public class CatalogActivity extends AppCompatActivity {
                                 PetEntry.COLUMN_PET_WEIGHT
                                 };
 
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-        Cursor cursor = db.query(PetEntry.TABLE_NAME, projection, null, null, null, null, null);
+        Cursor cursor = getContentResolver().query(
+                PetEntry.CONTENT_URI,projection,
+                null,null,null);
+
+
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
