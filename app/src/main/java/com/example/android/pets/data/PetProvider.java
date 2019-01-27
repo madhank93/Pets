@@ -9,10 +9,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.example.android.pets.data.PetContract.PetEntry;
 
 public class PetProvider extends ContentProvider {
+
+    private static final String LOG_TAG = PetProvider.class.getName();
 
     /** Object for a PetDbHelper class; to access the database */
     private PetDbHelper mDbHelper;
@@ -53,7 +56,7 @@ public class PetProvider extends ContentProvider {
      *
      * Catalog Activity -> Content resolver -> Pet provider (URI matcher) -> Query pets table
      *                                                                          ↓
-     *                                                                          ↓
+     *                                                                          ↓ (returns)
      *                                                                      Cursor
      */
     @Nullable
@@ -110,7 +113,7 @@ public class PetProvider extends ContentProvider {
     }
 
     /*
-     * Query method flow:
+     * Insert method flow:
      *                                                                        -> Perform X action on
      *                                                                        |  pets table
      * Editor Activity -> Content resolver -> Pet provider (URI matcher) -----
@@ -118,13 +121,21 @@ public class PetProvider extends ContentProvider {
      *                                                                        -> Perform Y action on
      *                                                                           a single pet in the
      *                                                                           pets table
+     *
+     *                                                                       URI (returns)
      * @param uri where to insert?.
      * @param values what to insert?.
      */
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-        return null;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case PETS:
+                return insertPet(uri, values);
+            default:
+                throw new IllegalArgumentException("Insertion is not supported for " + uri);
+        }
     }
 
     @Override
@@ -136,4 +147,28 @@ public class PetProvider extends ContentProvider {
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
         return 0;
     }
+
+    /**
+     * Insert a pet into the database with the given content values. Return the new content URI
+     * for that specific row in the database.
+     */
+    private Uri insertPet(Uri uri, ContentValues values) {
+
+        // Get writeable database
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        // Insert the new pet with the given values
+        long id = db.insert(PetEntry.TABLE_NAME,null,values);
+
+        // If the ID is -1, then the insertion failed. Log an error and return null.
+        if (id == -1) {
+            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            return null;
+        }
+
+        // Once we know the ID of the new row in the table,
+        // return the new URI with the ID appended to the end of it
+        return ContentUris.withAppendedId(uri, id);
+    }
+
 }
