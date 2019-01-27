@@ -42,10 +42,20 @@ public class PetProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
+
+        // Initializing PetDbHelper class.
         mDbHelper = new PetDbHelper(getContext());
         return true;
     }
 
+    /*
+     * Query method flow:
+     *
+     * Catalog Activity -> Content resolver -> Pet provider (URI matcher) -> Query pets table
+     *                                                                          ↓
+     *                                                                          ↓
+     *                                                                      Cursor
+     */
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
