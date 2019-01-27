@@ -34,11 +34,6 @@ import com.example.android.pets.data.PetDbHelper;
 /**
  * Displays list of pets that were entered and stored in the app.
  *
- * Flow:
- * Catalog Activity -> Content resolver -> Pet provider (URI matcher) -> Query pets table
- *                                                                          ↓
- *                                                                          ↓
- *                                                                      Cursor
  */
 public class CatalogActivity extends AppCompatActivity {
 
@@ -78,11 +73,20 @@ public class CatalogActivity extends AppCompatActivity {
     private void displayDatabaseInfo() {
 
         String [] projection = {PetEntry._ID,
-                                PetEntry.COLUMN_PET_NAME,
-                                PetEntry.COLUMN_PET_BREED,
-                                PetEntry.COLUMN_PET_GENDER,
-                                PetEntry.COLUMN_PET_WEIGHT
-                                };
+                PetEntry.COLUMN_PET_NAME,
+                PetEntry.COLUMN_PET_BREED,
+                PetEntry.COLUMN_PET_GENDER,
+                PetEntry.COLUMN_PET_WEIGHT
+        };
+
+        /*
+         * Query method flow:
+         *
+         * Catalog Activity -> Content resolver -> Pet provider (URI matcher) -> Query pets table
+         *                                                                          ↓
+         *                                                                          ↓
+         *                                                                      Cursor
+         */
 
         Cursor cursor = getContentResolver().query(
                 PetEntry.CONTENT_URI,projection,
