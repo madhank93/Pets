@@ -154,6 +154,24 @@ public class PetProvider extends ContentProvider {
      */
     private Uri insertPet(Uri uri, ContentValues values) {
 
+        // Check that the name is not null
+        String name = values.getAsString(PetEntry.COLUMN_PET_NAME);
+        if (name == null) {
+            throw new IllegalArgumentException("Pet requires a name");
+        }
+
+        // Check that the breed is not null
+        String breed = values.getAsString(PetEntry.COLUMN_PET_BREED);
+        if (breed == null) {
+            throw new IllegalArgumentException("Pet requires a breed");
+        }
+
+        // Check that the weight is not null
+        String weight = values.getAsString(PetEntry.COLUMN_PET_WEIGHT);
+        if (weight == null) {
+            throw new IllegalArgumentException("Pet requires a weight");
+        }
+
         // Get writeable database
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
