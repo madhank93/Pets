@@ -13,6 +13,10 @@ import android.util.Log;
 
 import com.example.android.pets.data.PetContract.PetEntry;
 
+import static com.example.android.pets.data.PetContract.PetEntry.GENDER_FEMALE;
+import static com.example.android.pets.data.PetContract.PetEntry.GENDER_MALE;
+import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
+
 public class PetProvider extends ContentProvider {
 
     private static final String LOG_TAG = PetProvider.class.getName();
@@ -161,15 +165,15 @@ public class PetProvider extends ContentProvider {
         }
 
         // Check that the breed is not null
-        String breed = values.getAsString(PetEntry.COLUMN_PET_BREED);
-        if (breed == null) {
-            throw new IllegalArgumentException("Pet requires a breed");
+        Integer gender = values.getAsInteger(PetEntry.COLUMN_PET_GENDER);
+        if (gender == null || !PetEntry.isValidGender(gender)) {
+            throw new IllegalArgumentException("Pet requires valid gender");
         }
 
         // Check that the weight is not null
-        String weight = values.getAsString(PetEntry.COLUMN_PET_WEIGHT);
-        if (weight == null) {
-            throw new IllegalArgumentException("Pet requires a weight");
+        Integer weight = values.getAsInteger(PetEntry.COLUMN_PET_WEIGHT);
+        if (weight != null && weight < 0) {
+            throw new IllegalArgumentException("Weight cannot be in negative");
         }
 
         // Get writeable database
