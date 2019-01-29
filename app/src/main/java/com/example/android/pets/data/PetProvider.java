@@ -13,10 +13,6 @@ import android.util.Log;
 
 import com.example.android.pets.data.PetContract.PetEntry;
 
-import static com.example.android.pets.data.PetContract.PetEntry.GENDER_FEMALE;
-import static com.example.android.pets.data.PetContract.PetEntry.GENDER_MALE;
-import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
-
 public class PetProvider extends ContentProvider {
 
     private static final String LOG_TAG = PetProvider.class.getName();
@@ -118,11 +114,11 @@ public class PetProvider extends ContentProvider {
 
     /*
      * Insert method flow:
-     *                                                                        -> Perform X action on
+     *                                                                        -> Perform insert action on
      *                                                                        |  pets table
      * Editor Activity -> Content resolver -> Pet provider (URI matcher) -----
      *                                                                        |
-     *                                                                        -> Perform Y action on
+     *                                                                        -> Perform insert action on
      *                                                                           a single pet in the
      *                                                                           pets table
      *
@@ -147,9 +143,37 @@ public class PetProvider extends ContentProvider {
         return 0;
     }
 
+    /*
+     * Update method flow:
+     *                                                                        -> Perform update on
+     *                                                                        |  pets table
+     * Editor Activity -> Content resolver -> Pet provider (URI matcher) -----
+     *                                                                        |
+     *                                                                        -> Perform update on
+     *                                                                           a single pet in the
+     *                                                                           pets table
+     *
+     *                                                                       URI (returns)
+     * @param uri where to update?.
+     * @param values what to update?.
+     */
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case PETS:
+                return updatePet(uri, values, selection, selectionArgs);
+            case PET_ID:
+                // For the PET_ID code, extract out the ID from the URI,
+                // so we know which row to update. Selection will be "_id=?" and selection
+                // arguments will be a String array containing the actual ID.
+                selection = PetEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                return updatePet(uri, values, selection, selectionArgs);
+            default:
+                throw new IllegalArgumentException("Update is not supported for " + uri);
+        }
     }
 
     /**
@@ -192,5 +216,27 @@ public class PetProvider extends ContentProvider {
         // return the new URI with the ID appended to the end of it
         return ContentUris.withAppendedId(uri, id);
     }
+
+    /**
+     * Update pets in the database with the given content values. Apply the changes to the rows
+     * specified in the selection and selection arguments (which could be 0 or 1 or more pets).
+     * Return the number of rows that were successfully updated.
+     */
+    private int updatePet(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+
+        // TODO: Update the selected pets in the pets database table with the given ContentValues
+        // Get writeable database
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        // Insert the new pet with the given values
+        Integer id = db.update(PetEntry.TABLE_NAME,values,selection,selectionArgs);
+
+        // TODO: Return the number of rows that were affected
+        // If the ID is -1, then the insertion failed. Log an error and return null.
+
+        return id;
+    }
+
+
 
 }
