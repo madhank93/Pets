@@ -16,6 +16,7 @@
 package com.example.android.pets;
 
 import android.app.LoaderManager;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -65,6 +66,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
             public void onClick(View view) {
                 Intent editorActivity = new Intent(CatalogActivity.this, EditorActivity.class);
                 startActivity(editorActivity);
+                setTitle("Add Pet");
             }
         });
 
@@ -84,8 +86,14 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent editorActivity = new Intent(CatalogActivity.this,EditorActivity.class);
-                startActivity(editorActivity);
+
+                Intent editorActivityIntent = new Intent(CatalogActivity.this,EditorActivity.class);
+
+                Uri currentUri = ContentUris.withAppendedId(PetEntry.CONTENT_URI,id);
+                editorActivityIntent.setData(currentUri);
+
+                startActivity(editorActivityIntent);
+                setTitle("Edit Pet");
             }
 
         });
