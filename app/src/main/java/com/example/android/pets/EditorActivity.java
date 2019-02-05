@@ -15,7 +15,12 @@
  */
 package com.example.android.pets;
 
+import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.CursorLoader;
+import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -35,7 +40,7 @@ import com.example.android.pets.data.PetContract.PetEntry;
 /**
  * Allows user to create a new pet or edit an existing one.
  */
-public class EditorActivity extends AppCompatActivity {
+public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /** EditText field to enter the pet's name */
     private EditText mNameEditText;
@@ -55,10 +60,22 @@ public class EditorActivity extends AppCompatActivity {
      */
     private int mGender = 0;
 
+    private Uri currentPetUri;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
+
+        Intent intent = getIntent();
+        currentPetUri = intent.getData();
+
+        if (currentPetUri == null) {
+            setTitle(getString(R.string.editor_activity_title_new_pet));
+        }
+        else {
+            setTitle(getString(R.string.editor_activity_title_edit_pet));
+        }
 
         // Find all relevant views that we will need to read user input from
         mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
@@ -67,6 +84,9 @@ public class EditorActivity extends AppCompatActivity {
         mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
 
         setupSpinner();
+
+        getLoaderManager().initLoader(0, null, this);
+
     }
 
     /**
@@ -168,6 +188,43 @@ public class EditorActivity extends AppCompatActivity {
             Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
                     Toast.LENGTH_SHORT).show();
         }
+
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        if (currentPetUri == null) {
+            return null;
+        }
+        return new CursorLoader(this,currentPetUri,
+                null, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+        while (data.moveToNext()) {
+
+            mBreedEditText = (EditText) findViewById(R.id.edit_pet_breed);
+            mWeightEditText = (EditText) findViewById(R.id.edit_pet_weight);
+            mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
+
+            // Extract properties from cursor
+            String name = data.getString(data.getColumnIndexOrThrow(PetEntry.COLUMN_PET_NAME));
+            String breed = data.getString(data.getColumnIndexOrThrow(PetEntry.COLUMN_PET_BREED));
+            String weight = data.getString(data.getColumnIndexOrThrow(PetEntry.COLUMN_PET_WEIGHT));
+
+            // Populate fields with extracted properties
+            mNameEditText.setText(name);
+            mBreedEditText.setText(breed);
+            mWeightEditText.setText(weight);
+        }
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
 
     }
 }
