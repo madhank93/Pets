@@ -26,6 +26,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -92,8 +93,9 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
                 Uri currentUri = ContentUris.withAppendedId(PetEntry.CONTENT_URI,id);
                 editorActivityIntent.setData(currentUri);
 
+                Log.i("Uri name: ", currentUri.toString());
+
                 startActivity(editorActivityIntent);
-                setTitle("Edit Pet");
             }
 
         });
