@@ -63,6 +63,9 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
      */
     private int mGender = 0;
 
+    // Defines an object to contain the updated values
+    ContentValues mUpdateValues = new ContentValues();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,7 +146,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                insertPet();
+                savePet();
                 finish();
                 return true;
             // Respond to a click on the "Delete" menu option
@@ -159,7 +162,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         return super.onOptionsItemSelected(item);
     }
 
-    private void insertPet() {
+    private void savePet() {
 
         // Read from input fields
         // Use trim to eliminate leading or trailing white space
@@ -168,26 +171,44 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         int    petGender = mGender;
         int    petWeight = Integer.parseInt(mWeightEditText.getText().toString().trim());
 
-        // Create a ContentValues object where column names are the keys,
-        // and pet attributes from the editor are the values.
-        ContentValues values = new ContentValues();
-        values.put(PetEntry.COLUMN_PET_NAME,petName);
-        values.put(PetEntry.COLUMN_PET_BREED,petBreed);
-        values.put(PetEntry.COLUMN_PET_GENDER,petGender);
-        values.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
+        if (mCurrentPetUri == null) {
 
-        // Insert a new pet into the provider, returning the content URI for the new pet.
-        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI,values);
+            // Create a ContentValues object where column names are the keys,
+            // and pet attributes from the editor are the values.
+            ContentValues values = new ContentValues();
+            values.put(PetEntry.COLUMN_PET_NAME,petName);
+            values.put(PetEntry.COLUMN_PET_BREED,petBreed);
+            values.put(PetEntry.COLUMN_PET_GENDER,petGender);
+            values.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
 
-        // Show a toast message depending on whether or not the insertion was successful
-        if (newUri == null) {
-            // If the new content URI is null, then there was an error with insertion.
-            Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
-                    Toast.LENGTH_SHORT).show();
-        } else {
-            // Otherwise, the insertion was successful and we can display a toast.
-            Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
-                    Toast.LENGTH_SHORT).show();
+            // Insert a new pet into the provider, returning the content URI for the new pet.
+            Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI,values);
+
+            // Show a toast message depending on whether or not the insertion was successful
+            if (newUri == null) {
+                // If the new content URI is null, then there was an error with insertion.
+                Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                // Otherwise, the insertion was successful and we can display a toast.
+                Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        else {
+
+            mUpdateValues.put(PetEntry.COLUMN_PET_NAME,petName);
+            mUpdateValues.put(PetEntry.COLUMN_PET_BREED,petBreed);
+            mUpdateValues.put(PetEntry.COLUMN_PET_GENDER,petGender);
+            mUpdateValues.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
+
+            getContentResolver().update(
+                    mCurrentPetUri,
+                    mUpdateValues,
+                    null,
+                    null
+            );
         }
 
     }
@@ -215,7 +236,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         if (data == null || data.getCount() < 1) {
             return;
         }
-
 
         if (data.moveToFirst()) {
 
