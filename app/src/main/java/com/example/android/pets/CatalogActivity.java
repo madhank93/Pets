@@ -26,7 +26,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -41,19 +40,9 @@ import com.example.android.pets.data.PetContract.PetEntry;
  */
 public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    // These are the Pet rows that we will retrieve
-    final String[] PROJECTION = {PetEntry._ID,
-            PetEntry.COLUMN_PET_NAME,
-            PetEntry.COLUMN_PET_BREED,
-    };
 
     /** Adapter for the ListView */
     PetCursorAdapter mCursorAdapter;
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +56,6 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
             public void onClick(View view) {
                 Intent editorActivity = new Intent(CatalogActivity.this, EditorActivity.class);
                 startActivity(editorActivity);
-                setTitle("Add Pet");
             }
         });
 
@@ -90,10 +78,13 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
                 Intent editorActivityIntent = new Intent(CatalogActivity.this,EditorActivity.class);
 
+                // Form the content URI that represents the specific pet that was clicked on,
+                // by appending the "id" (passed as input to this method) onto the
+                // {@link PetEntry#CONTENT_URI}.
+                // For example, the URI would be "content://com.example.android.pets/pets/2"
+                // if the pet with ID 2 was clicked on.
                 Uri currentUri = ContentUris.withAppendedId(PetEntry.CONTENT_URI,id);
                 editorActivityIntent.setData(currentUri);
-
-                Log.i("Uri name: ", currentUri.toString());
 
                 startActivity(editorActivityIntent);
             }
@@ -149,10 +140,17 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
     // Called when a new Loader needs to be created
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        // Define a projection that specifies the columns from the table we care about.
+        String[] projection = {
+                PetEntry._ID,
+                PetEntry.COLUMN_PET_NAME,
+                PetEntry.COLUMN_PET_BREED };
+
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
         return new CursorLoader(this,PetEntry.CONTENT_URI,
-                PROJECTION, null, null, null);
+                projection, null, null, null);
     }
 
     // Called when a previously created loader has finished loading

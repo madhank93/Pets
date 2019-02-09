@@ -54,13 +54,15 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     /** EditText field to enter the pet's gender */
     private Spinner mGenderSpinner;
 
+    /** Content URI for the existing pet (null if it's a new pet) */
+    private Uri mCurrentPetUri;
+
     /**
      * Gender of the pet. The possible values are:
      * 0 for unknown gender, 1 for male, 2 for female.
      */
     private int mGender = 0;
 
-    private Uri currentPetUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,13 +70,14 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         setContentView(R.layout.activity_editor);
 
         Intent intent = getIntent();
-        currentPetUri = intent.getData();
+        mCurrentPetUri = intent.getData();
 
-        if (currentPetUri == null) {
+        if (mCurrentPetUri == null) {
             setTitle(getString(R.string.editor_activity_title_new_pet));
         }
         else {
             setTitle(getString(R.string.editor_activity_title_edit_pet));
+            getLoaderManager().initLoader(0, null, this);
         }
 
         // Find all relevant views that we will need to read user input from
@@ -84,8 +87,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
 
         setupSpinner();
-
-        getLoaderManager().initLoader(0, null, this);
 
     }
 
@@ -194,37 +195,65 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-        if (currentPetUri == null) {
-            return null;
-        }
-        return new CursorLoader(this,currentPetUri,
-                null, null, null, null);
+        // Since the editor shows all pet attributes, define a projection that contains
+        // all columns from the pet table
+        String[] projection = {
+                PetEntry._ID,
+                PetEntry.COLUMN_PET_NAME,
+                PetEntry.COLUMN_PET_BREED,
+                PetEntry.COLUMN_PET_GENDER,
+                PetEntry.COLUMN_PET_WEIGHT };
+
+        return new CursorLoader(this,mCurrentPetUri,
+                projection, null, null, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-        while (data.moveToNext()) {
+        // Bail early if the cursor is null or there is less than 1 row in the cursor
+        if (data == null || data.getCount() < 1) {
+            return;
+        }
 
-            mBreedEditText = (EditText) findViewById(R.id.edit_pet_breed);
-            mWeightEditText = (EditText) findViewById(R.id.edit_pet_weight);
-            mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
+
+        if (data.moveToFirst()) {
 
             // Extract properties from cursor
             String name = data.getString(data.getColumnIndexOrThrow(PetEntry.COLUMN_PET_NAME));
             String breed = data.getString(data.getColumnIndexOrThrow(PetEntry.COLUMN_PET_BREED));
             String weight = data.getString(data.getColumnIndexOrThrow(PetEntry.COLUMN_PET_WEIGHT));
+            int gender = data.getInt(data.getColumnIndex(PetEntry.COLUMN_PET_GENDER));
 
             // Populate fields with extracted properties
             mNameEditText.setText(name);
             mBreedEditText.setText(breed);
             mWeightEditText.setText(weight);
+
+            switch (gender) {
+                case PetEntry.GENDER_MALE:
+                    mGenderSpinner.setSelection(1);
+                    break;
+                case PetEntry.GENDER_FEMALE:
+                    mGenderSpinner.setSelection(2);
+                    break;
+                default:
+                    mGenderSpinner.setSelection(0);
+                    break;
+            }
+
         }
 
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+
+        // If the loader is invalidated, clear out all the data from the input fields.
+        mNameEditText.setText("");
+        mBreedEditText.setText("");
+        mWeightEditText.setText("");
+        mGenderSpinner.setSelection(0); // Select "Unknown" gender
 
     }
 }
