@@ -169,32 +169,49 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String petName = mNameEditText.getText().toString().trim();
         String petBreed = mBreedEditText.getText().toString().trim();
         int    petGender = mGender;
-        int    petWeight = Integer.parseInt(mWeightEditText.getText().toString().trim());
+        String petWeight = mWeightEditText.getText().toString().trim();
+
+        // Check if this is supposed to be a new pet
+        // and check if all the fields in the editor are blank
+        if (mCurrentPetUri == null &&
+                TextUtils.isEmpty(petName) && TextUtils.isEmpty(petBreed) &&
+                TextUtils.isEmpty(petWeight) && mGender == PetEntry.GENDER_UNKNOWN) {
+            // Since no fields were modified, we can return early without creating a new pet.
+            // No need to create ContentValues and no need to do any ContentProvider operations.
+            return;
+        }
+
+        // Create a ContentValues object where column names are the keys,
+        // and pet attributes from the editor are the values.
+        ContentValues values = new ContentValues();
+        values.put(PetEntry.COLUMN_PET_NAME, petName);
+        values.put(PetEntry.COLUMN_PET_BREED, petBreed);
+        values.put(PetEntry.COLUMN_PET_GENDER, petGender);
+
+        // If the weight is not provided by the user, don't try to parse the string into an
+        // integer value. Use 0 by default.
+        int weight = 0;
+        if (!TextUtils.isEmpty(petWeight)) {
+            weight = Integer.parseInt(petWeight);
+        }
+        values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
 
         if (mCurrentPetUri == null) {
 
-            // Create a ContentValues object where column names are the keys,
-            // and pet attributes from the editor are the values.
-            ContentValues values = new ContentValues();
-            values.put(PetEntry.COLUMN_PET_NAME,petName);
-            values.put(PetEntry.COLUMN_PET_BREED,petBreed);
-            values.put(PetEntry.COLUMN_PET_GENDER,petGender);
-            values.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
+                // Insert a new pet into the provider, returning the content URI for the new pet.
+                Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
-            // Insert a new pet into the provider, returning the content URI for the new pet.
-            Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI,values);
-
-            // Show a toast message depending on whether or not the insertion was successful
-            if (newUri == null) {
-                // If the new content URI is null, then there was an error with insertion.
-                Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
-                        Toast.LENGTH_SHORT).show();
-            } else {
-                // Otherwise, the insertion was successful and we can display a toast.
-                Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
-                        Toast.LENGTH_SHORT).show();
+                // Show a toast message depending on whether or not the insertion was successful
+                if (newUri == null) {
+                    // If the new content URI is null, then there was an error with insertion.
+                    Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    // Otherwise, the insertion was successful and we can display a toast.
+                    Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
+                            Toast.LENGTH_SHORT).show();
+                }
             }
-        }
 
         else {
 
@@ -203,13 +220,20 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             mUpdateValues.put(PetEntry.COLUMN_PET_GENDER,petGender);
             mUpdateValues.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
 
-            getContentResolver().update(
-                    mCurrentPetUri,
-                    mUpdateValues,
-                    null,
-                    null
-            );
+            int rowsAffected = getContentResolver().update(mCurrentPetUri, mUpdateValues, null, null);
+
+            // Show a toast message depending on whether or not the update was successful.
+            if (rowsAffected == 0) {
+                // If no rows were affected, then there was an error with the update.
+                Toast.makeText(this, getString(R.string.editor_update_pet_failed),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                // Otherwise, the update was successful and we can display a toast.
+                Toast.makeText(this, getString(R.string.editor_update_pet_successful),
+                        Toast.LENGTH_SHORT).show();
+            }
         }
+
 
     }
 
